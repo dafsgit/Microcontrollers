@@ -98,6 +98,7 @@ loop:
     MOVF TEMP, W
     ANDLW MASK_UPPER
     MOVWF DATA_B
+    SWAPF DATA_B, F
 
     GOTO loop
 
