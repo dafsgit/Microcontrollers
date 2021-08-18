@@ -1,4 +1,3 @@
-
 ; PIC18F4550 Configuration Bit Settings
 
 ; Assembly source line config statements
