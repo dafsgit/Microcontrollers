@@ -69,7 +69,7 @@
 ;**************** Definitions*********************************
 DATA_A EQU 0x01
 DATA_B EQU 0x02
-TEMP EQU 0x03
+TEMP EQU 0x03 
 
 CONSTANT MASK_LOWER = b'00001111'
 CONSTANT MASK_UPPER = b'11110000'
@@ -78,28 +78,179 @@ CONSTANT MASK_UPPER = b'11110000'
     ORG 0x000 ;vector de reset
     GOTO main ;goes to main program
 
-init:
-    SETF LATB ;input port
-    CLRF LATD ;output port
-    SETF TRISB ;input port
-    CLRF TRISD ;output port
-    CLRF PORTD ;clear port
+init: 
+    MOVLW	0x0F			;Puertos A, B y E pueden ser digitales (I/O) o analógicos (sólo I)
+    MOVWF	ADCON1			;PORTA es analógico por default y estas dos líneas lo obligan a ser digital
+    
+    SETF	TRISB			;PORTC is input
+    CLRF	TRISD			;PORTB is output
+    CLRF	PORTD			;clear port
     return ;leaving initialization subroutine
 
 main: call init
 
 loop:
-    MOVFF PORTB, TEMP
-
-    MOVF TEMP, W
+    MOVF PORTB, W
+    MOVWF TEMP
+    
     ANDLW MASK_LOWER
     MOVWF DATA_A
-
+    
     MOVF TEMP, W
     ANDLW MASK_UPPER
     MOVWF DATA_B
     SWAPF DATA_B, F
-
+    
+    MOVF DATA_A, W
+    ADDWF DATA_B, W
+    MOVWF TEMP
+    
+    BZ CASE0
+       
+    SUBLW 0x01
+    BZ CASE1
+    
+    MOVF TEMP, W
+    SUBLW 0x02
+    BZ CASE2
+    
+    MOVF TEMP, W
+    SUBLW 0x03
+    BZ CASE3
+    
+    MOVF TEMP, W
+    SUBLW 0x04
+    BZ CASE4
+    
+    MOVF TEMP, W
+    SUBLW 0x05
+    BZ CASE5
+    
+    MOVF TEMP, W
+    SUBLW 0x06
+    BZ CASE6
+    
+    MOVF TEMP, W
+    SUBLW 0x07
+    BZ CASE7
+    
+    MOVF TEMP, W
+    SUBLW 0x08
+    BZ CASE8
+    
+    MOVF TEMP, W
+    SUBLW 0x09
+    BZ CASE9
+    
+    MOVF TEMP, W
+    SUBLW 0x0A
+    BZ CASEA
+    
+    MOVF TEMP, W
+    SUBLW 0x0B
+    BZ CASEB
+    
+    MOVF TEMP, W
+    SUBLW 0x0C
+    BZ CASEC
+    
+    MOVF TEMP, W
+    SUBLW 0x0D
+    BZ CASED
+    
+    MOVF TEMP, W
+    SUBLW 0x0E
+    BZ CASEE
+    
+    MOVF TEMP, W
+    SUBLW 0x0F
+    BZ CASEF
+    
+    BRA DEFAULT
+    
+CASE0:
+    MOVLW b'00111111'
+    MOVWF PORTD
+    GOTO loop
+    
+CASE1:
+    MOVLW b'00000110'
+    MOVWF PORTD
+    GOTO loop
+    
+CASE2:
+    MOVLW b'01011011'
+    MOVWF PORTD
+    GOTO loop
+    
+CASE3:
+    MOVLW b'01001111'
+    MOVWF PORTD
+    GOTO loop
+    
+CASE4:
+    MOVLW b'01100110'
+    MOVWF PORTD
+    GOTO loop
+    
+CASE5:
+    MOVLW b'01101101'
+    MOVWF PORTD
+    GOTO loop
+    
+CASE6:
+    MOVLW b'01111101'
+    MOVWF PORTD
+    GOTO loop
+    
+CASE7:
+    MOVLW b'00000111'
+    MOVWF PORTD
+    GOTO loop
+    
+CASE8:
+    MOVLW b'01111111'
+    MOVWF PORTD
+    GOTO loop
+    
+CASE9:
+    MOVLW b'01101111'
+    MOVWF PORTD
+    GOTO loop
+    
+CASEA:
+    MOVLW b'01110111'
+    MOVWF PORTD
+    GOTO loop
+    
+CASEB:
+    MOVLW b'01111100'
+    MOVWF PORTD
+    GOTO loop
+    
+CASEC:
+    MOVLW b'00111001'
+    MOVWF PORTD
+    GOTO loop
+    
+CASED:
+    MOVLW b'01011110'
+    MOVWF PORTD
+    GOTO loop
+    
+CASEE:
+    MOVLW b'01111001'
+    MOVWF PORTD
+    GOTO loop
+    
+CASEF:
+    MOVLW b'01110001'
+    MOVWF PORTD
+    GOTO loop
+    
+DEFAULT:
+    MOVLW b'01000000'
+    MOVWF PORTD
     GOTO loop
 
     END
