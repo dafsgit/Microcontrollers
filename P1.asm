@@ -1,3 +1,4 @@
+
 ; PIC18F4550 Configuration Bit Settings
 
 ; Assembly source line config statements
@@ -67,54 +68,54 @@
   CONFIG  EBTRB = OFF           ; Boot Block Table Read Protection bit (Boot block (000000-0007FFh) is not protected from table reads executed in other blocks)
 
 ;**************** Definitions*********************************
-DATA_A EQU 0x01
-DATA_B EQU 0x02
-TEMP EQU 0x03 
+DATA_A EQU 0x01				;Reservar el espacio para el primer operando
+DATA_B EQU 0x02				;Reservar el espacio para el segundo operando
+TEMP EQU 0x03				;Reservar un registro temporal
 
-CONSTANT MASK_LOWER = b'00001111'
-CONSTANT MASK_UPPER = b'11110000'
+CONSTANT MASK_LOWER = b'00001111'	;Declaración de la máscara para obtener los 4 bits menos significativos
+CONSTANT MASK_UPPER = b'11110000'	;Declaración de la máscara para obtener los 4 bits más significativos
 ;*************************************************
 
-    ORG 0x000 ;vector de reset
-    GOTO main ;goes to main program
+    ORG 0x000				;vector de reset
+    GOTO main				;goes to main program
 
 init: 
     MOVLW	0x0F			;Puertos A, B y E pueden ser digitales (I/O) o analógicos (sólo I)
     MOVWF	ADCON1			;PORTA es analógico por default y estas dos líneas lo obligan a ser digital
     
-    SETF	TRISB			;PORTC is input
-    CLRF	TRISD			;PORTB is output
-    CLRF	PORTD			;clear port
-    return ;leaving initialization subroutine
+    SETF	TRISB			;PORTC es entrada
+    CLRF	TRISD			;PORTB es salida
+    CLRF	PORTD			;Limpiar el puerto de salida
+    return				;leaving initialization subroutine
 
-main: call init
+main: call init				;Llamar a inicialización de puertos
 
 loop:
-    MOVF PORTB, W
-    MOVWF TEMP
+    MOVF PORTB, W			;Mover la info del PORTB a WREG
+    MOVWF TEMP				;Mover la info del WREG a TEMP
     
-    ANDLW MASK_LOWER
-    MOVWF DATA_A
+    ANDLW MASK_LOWER			;Operación AND entre la máscara de bits menos significativos y WREG
+    MOVWF DATA_A			;Mover la info de WREG (resultado del AND) a DATA_A (primer operando)
     
-    MOVF TEMP, W
-    ANDLW MASK_UPPER
-    MOVWF DATA_B
-    SWAPF DATA_B, F
+    MOVF TEMP, W			;Mover la info del TEMP a WREG (original del PORTB)
+    ANDLW MASK_UPPER			;Operación AND entre la máscara de bits más significativos y WREG
+    MOVWF DATA_B			;Mover la info de WREG (resultado del AND) a DATA_B (segundo operando)
+    SWAPF DATA_B, F			;Cambiar los nibbles de DATA_B (los 4 bits más significativos se vuelven los menos)
     
-    MOVF DATA_A, W
-    ADDWF DATA_B, W
-    MOVWF TEMP
+    MOVF DATA_A, W			;Mover la info del DATA_A a WREG
+    ADDWF DATA_B, W			;Operación de suma entre DATA_A y DATA_B
+    MOVWF TEMP				;Guardar el resultado de la suma en TEMP (ya que no se va a usar más la info de PORTB)
     
-    BZ CASE0
+    BZ CASE0				;Si la suma es cero, brincar a esa etiqueta
        
-    SUBLW 0x01
-    BZ CASE1
+    SUBLW 0x01				;Operación L-WREG (la literal 0x01 menos el resultado de la suma)
+    BZ CASE1				;Si el resultado es cero, la suma es igual a la literal, entonces brinca a esa etiqueta
     
-    MOVF TEMP, W
-    SUBLW 0x02
-    BZ CASE2
+    MOVF TEMP, W			;Mover la info del TEMP (resultado de la suma A+B) a WREG
+    SUBLW 0x02				;Operación L-WREG (la literal 0x02 menos el resultado de la suma)
+    BZ CASE2				;Si el resultado es cero, la suma es igual a la literal, entonces brinca a esa etiqueta
     
-    MOVF TEMP, W
+    MOVF TEMP, W			;Mismo caso, hasta llegar a la literal 0x0F...
     SUBLW 0x03
     BZ CASE3
     
@@ -166,17 +167,18 @@ loop:
     SUBLW 0x0F
     BZ CASEF
     
-    BRA DEFAULT
+    BRA DEFAULT				;Si no se cumple ninguna condición, quiere decir que el resultado de la suma no es un valor del 0 a F,
+					; así que no se representará en el display de 7 segmentos y brinca incondicionalmente al caso default.
     
-CASE0:
-    MOVLW b'00111111'
-    MOVWF PORTD
-    GOTO loop
+CASE0:					;Si el resultado es cero,
+    MOVLW b'00111111'			;Se mueve a WREG una literal que represente el número en el display de 7 segmentos
+    MOVWF PORTD				;Se mueve esta información a PORTD (puerto de salida al que estará conectado el display)
+    GOTO loop				;Vuelve a realizar el programa desde la obtención de los operandos del PORTB (así el programa estará siempre activo)
     
-CASE1:
-    MOVLW b'00000110'
-    MOVWF PORTD
-    GOTO loop
+CASE1:					;Si el resultado es 1,
+    MOVLW b'00000110'			;Se mueve a WREG una literal que represente el número en el display de 7 segmentos
+    MOVWF PORTD				; el orden de la salida y los segmentos debe ser: 'gfedcba', si se manda señal en ALTO, el segmento se enciende, en BAJO permanece apagado.
+    GOTO loop				;Así se continua para todos los casos hasta F...
     
 CASE2:
     MOVLW b'01011011'
@@ -249,8 +251,8 @@ CASEF:
     GOTO loop
     
 DEFAULT:
-    MOVLW b'01000000'
+    MOVLW b'01000000'			;El caso default dibuja un guión intermedio, indicando que la suma es mayor y no se puede representar en el display.
     MOVWF PORTD
     GOTO loop
 
-    END
+    END					;El programa finaliza
