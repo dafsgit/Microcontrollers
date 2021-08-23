@@ -83,8 +83,8 @@ init:
     MOVLW	0x0F			;Puertos A, B y E pueden ser digitales (I/O) o analógicos (sólo I)
     MOVWF	ADCON1			;PORTA es analógico por default y estas dos líneas lo obligan a ser digital
     
-    SETF	TRISB			;PORTC es entrada
-    CLRF	TRISD			;PORTB es salida
+    SETF	TRISB			;PORTB es entrada
+    CLRF	TRISD			;PORTD es salida
     CLRF	PORTD			;Limpiar el puerto de salida
     return				;leaving initialization subroutine
 
